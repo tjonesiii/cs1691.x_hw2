@@ -7,37 +7,67 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
+  def update_ratings_in_session(ratings)
+      session[:ratings].clear unless session[:ratings] == nil
+      ratings.each do |r|
+        session[:ratings][r] = "1"
+      end
+  end
+
   def index
     @DB_TITLE = 'title'
     @DB_RELEASE_DATE = 'release_date'
-
-    @sortStr = ""
-    if session[:sort] != nil and params[:sort] == nil
-      @sortStr = "need to refresh SORT (#{session[:sort]})"
-    end
-
     @all_ratings = Movie.all_ratings
+@paramStr = ""
+@paramStr = params[:ratings]
+    if session[:sort] != nil and params[:sort] == nil
+      #redirect_to '/movies?sort=#{session[:sort]}'
+      @sortStr = "sort=#{session[:sort]}"
+    end
 
-    if params[:sort] == @DB_TITLE || params[:sort] == @DB_RELEASE_DATE
-      @sortBy = params[:sort] # || 'title'
-      session[:sort] = params[:sort]
-    end
-    
-    sortOrder = @sortBy || @DB_TITLE
-    sortOrderStr = sortOrder + " asc"
+    if session[:ratings] == nil
+      session[:ratings] = Hash.new
+      @all_ratings.each do |r|
+        session[:ratings][r] = "1"
+      end
+      @filterStr = "new filter: #{session[:ratings]}"
+      redirect_to '/movies?ratings[R]=1&ratings[PG-13]=1'
+      #redirect_to movie_path + '?sort=title'#, session[:ratings]
+      #@filterStr = movie_path
+    else
 
-    if session["first"] == nil
-      session["first"] = 0
-      ratings = @all_ratings # check all ratings boxes on first page visit
-    else
-      ratings = params[:ratings].keys if params[:ratings] != nil
-    end
-    @ratingSel = ratings || []
-    if ratings
-      @movies = Movie.find(:all, :order => sortOrderStr , :conditions => {:rating => ratings })
-    else
-      @movies = Movie.find(:all, :order => sortOrderStr)
-    end
+      if session[:ratings] != nil and (params[:ratings] == nil or params[:ratings].keys == nil)
+        #@filterStr = "#{session[:ratings]}"
+
+      end
+
+      if @sortStr or @filterStr
+        @sortStr = "redirect ?#{@sortStr}&#{@filterStr}"
+      end
+
+      if params[:sort] == @DB_TITLE || params[:sort] == @DB_RELEASE_DATE
+        @sortBy = params[:sort] # || 'title'
+        session[:sort] = params[:sort]
+      end
+      
+      sortOrder = @sortBy || @DB_TITLE
+      sortOrderStr = sortOrder + " asc"
+
+      if session["first"] == nil
+        session["first"] = 0
+        ratings = @all_ratings # check all ratings boxes on first page visit
+      else
+        ratings = params[:ratings].keys if params[:ratings] != nil
+      end
+      @ratingSel = ratings || []
+      if ratings
+        @movies = Movie.find(:all, :order => sortOrderStr , :conditions => {:rating => ratings })
+        session[:ratings] = params[:ratings]
+      else
+        @movies = Movie.find(:all, :order => sortOrderStr)
+      end
+    end # session[:ratings] == nil
+      @filterStr = movies_path + "#{params[:ratings]}"
   end
 
   def new

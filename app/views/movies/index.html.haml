@@ -11,7 +11,7 @@
 %table#movies
   %thead
     %tr
-      %th{:id => 'title_header', :class => (@sortBy == @DB_TITLE) ? 'hilite':nil}= link_to "Movie Title -- SortStr: #{@sortStr}-- ", movies_path('sort'=>@DB_TITLE)
+      %th{:id => 'title_header', :class => (@sortBy == @DB_TITLE) ? 'hilite':nil}= link_to "Movie Title -- paramStr: #{@paramStr} ... sort status: '#{@sortStr}' and rating status: '#{@filterStr}'", movies_path('sort'=>@DB_TITLE)
       %th Rating
       %th{:id => 'release_date_header', :class => (@sortBy == @DB_RELEASE_DATE) ? 'hilite':nil}= link_to "Release Date", movies_path('sort'=>@DB_RELEASE_DATE)
       %th More Info
