@@ -14,17 +14,82 @@ class MoviesController < ApplicationController
       end
   end
 
+  def ratings_str
+    @ratingsStr = ""
+    if session[:ratings] != nil
+      session[:ratings].each do |r,v|
+        @ratingsStr += "&" if @ratingsStr != ""
+        @ratingsStr += "ratings[#{r}]=1"
+      end
+    else
+      @all_ratings.each do |r|
+        @ratingsStr += "&" if @ratingsStr != ""
+        @ratingsStr += "ratings[#{r}]=1"
+      end
+    end
+    @ratingsStr
+  end
+
   def index
     @DB_TITLE = 'title'
     @DB_RELEASE_DATE = 'release_date'
     @all_ratings = Movie.all_ratings
 @paramStr = ""
+#=begin
 @paramStr = params[:ratings]
-    if session[:sort] != nil and params[:sort] == nil
-      #redirect_to '/movies?sort=#{session[:sort]}'
-      @sortStr = "sort=#{session[:sort]}"
+    doRedirect = false
+
+    if params[:sort] == nil
+      doRedirect = session[:sort] != nil 
+        #@sortStr = "sort=#{session[:sort]}"
+    else
+      session[:sort] = params[:sort]
+    end
+  
+    if params[:ratings] == nil
+      doRedirect = true
+=begin
+      @ratingsStr = ""
+      if session[:ratings] != nil
+        session[:ratings].each do |r,v|
+          @ratingsStr += "&" if @ratingsStr != ""
+          @ratingsStr += "ratings[#{r}]=1"
+        end
+      else
+        @all_ratings.each do |r|
+          @ratingsStr += "&" if @ratingsStr != ""
+          @ratingsStr += "ratings[#{r}]=1"
+        end
+      end
+=end
+    else
+      session[:ratings] = params[:ratings]
     end
 
+    if doRedirect #@sortStr or @ratingsStr
+      @filterStr  = "#{movies_path}?#{ratings_str()}"
+      @filterStr += "&sort=#{session[:sort]}" if session[:sort] != nil
+      redirect_to @filterStr 
+    end
+#=end
+    @movies = Movie.all
+@ratingSel = []
+
+      if params[:sort] == @DB_TITLE || params[:sort] == @DB_RELEASE_DATE
+        @sortBy = params[:sort]
+      end
+      sortOrder = @sortBy || @DB_TITLE
+      sortOrderStr = sortOrder + " asc"
+
+      ratings = params[:ratings].keys if params[:ratings] != nil
+      @ratingSel = ratings || []
+      if ratings
+        @movies = Movie.find(:all, :order => sortOrderStr , :conditions => {:rating => ratings })
+      else
+        @movies = Movie.find(:all, :order => sortOrderStr)
+      end
+
+=begin
     if session[:ratings] == nil
       session[:ratings] = Hash.new
       @all_ratings.each do |r|
@@ -67,7 +132,9 @@ class MoviesController < ApplicationController
         @movies = Movie.find(:all, :order => sortOrderStr)
       end
     end # session[:ratings] == nil
-      @filterStr = movies_path + "#{params[:ratings]}"
+      #@filterStr = movies_path + "#{params[:ratings]}"
+      @filterStr = ">>#{params[:sort]}<<"
+=end
   end
 
   def new
