@@ -60,7 +60,7 @@ class MoviesController < ApplicationController
     @ratingSel = ratings || []
     if ratings
       @movies = Movie.find(:all, :order => sortOrderStr , :conditions => {:rating => ratings })
-    else
+    else # should never get here!
       @movies = Movie.find(:all, :order => sortOrderStr)
     end
   end
